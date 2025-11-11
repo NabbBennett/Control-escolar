@@ -1,0 +1,67 @@
+from django.db.models import *
+from django.db import transaction
+from control_escolar_desit_api.serializers import UserSerializer
+from control_escolar_desit_api.serializers import *
+from control_escolar_desit_api.models import *
+from rest_framework import permissions
+from rest_framework import generics
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth.models import Group
+
+class AdminAll(generics.CreateAPIView):
+    #Esta función es esencial para todo donde se requiera autorización de inicio de sesión (token)
+    permission_classes = (permissions.IsAuthenticated,)
+    # Invocamos la petición GET para obtener todos los administradores
+    def get(self, request, *args, **kwargs):
+        admin = Administradores.objects.filter(user__is_active = 1).order_by("id")
+        lista = AdminSerializer(admin, many=True).data
+        return Response(lista, 200)
+
+class AdminView(generics.CreateAPIView):
+    #Registrar nuevo usuario
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        # Serializamos los datos del administrador para volverlo de nuevo JSON
+        user = UserSerializer(data=request.data)
+        
+        if user.is_valid():
+            #Grabar datos del administrador
+            role = request.data['rol']
+            first_name = request.data['first_name']
+            last_name = request.data['last_name']
+            email = request.data['email']
+            password = request.data['password']
+            #Valida si existe el usuario o bien el email registrado
+            existing_user = User.objects.filter(email=email).first()
+
+            if existing_user:
+                return Response({"message":"Username "+email+", is already taken"},400)
+
+            user = User.objects.create( username = email,
+                                        email = email,
+                                        first_name = first_name,
+                                        last_name = last_name,
+                                        is_active = 1)
+
+
+            user.save()
+            user.set_password(password)
+            user.save()
+
+            group, created = Group.objects.get_or_create(name=role)
+            group.user_set.add(user)
+            group.save()
+
+            #Almacenar los datos adicionales del administrador
+            admin = Administradores.objects.create(user=user,
+                                            clave_admin= request.data["clave_admin"],
+                                            telefono= request.data["telefono"],
+                                            rfc= request.data["rfc"].upper(),
+                                            edad= request.data["edad"],
+                                            ocupacion= request.data["ocupacion"])
+            admin.save()
+
+            return Response({"Admin creado con el ID: ": admin.id }, 201)
+
+        return Response(user.errors, status=status.HTTP_400_BAD_REQUEST)
