@@ -17,7 +17,6 @@ export class AlumnosScreenComponent implements OnInit {
   public pageSize: number = 10;
   public currentPage: number = 1;
   public totalPages: number = 1;
-  // sortMode: 'none' | 'matricula_desc' | 'curp_asc'
   public sortMode: string = 'none';
 
   constructor(
@@ -53,7 +52,6 @@ export class AlumnosScreenComponent implements OnInit {
 
     if (this.sortMode === 'matricula_desc') {
       data.sort((x, y) => {
-        // numeric-aware compare, but matricula could be string
         const ax = x?.matricula?.toString() || '';
         const ay = y?.matricula?.toString() || '';
         return ay.localeCompare(ax, undefined, { numeric: true });

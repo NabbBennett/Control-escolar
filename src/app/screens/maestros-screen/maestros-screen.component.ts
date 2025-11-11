@@ -16,7 +16,6 @@ export class MaestrosScreenComponent implements OnInit {
   public pageSize: number = 10;
   public currentPage: number = 1;
   public totalPages: number = 1;
-  // sortMode: 'none' | 'id_desc' | 'name_asc'
   public sortMode: string = 'none';
 
   constructor(
