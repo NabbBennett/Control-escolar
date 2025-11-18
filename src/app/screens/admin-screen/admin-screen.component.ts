@@ -20,14 +20,10 @@ export class AdminScreenComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Lógica de inicialización aquí
     this.name_user = this.facadeService.getUserCompleteName();
-
-    // Obtenemos los administradores
     this.obtenerAdmins();
   }
 
-  //Obtener lista de usuarios
   public obtenerAdmins() {
     this.administradoresService.obtenerListaAdmins().subscribe(
       (response) => {
